@@ -15,7 +15,47 @@
           </div>
         </el-col>
       </el-row>
-      <el-table :data="categories" style="width: 100%" border stripe>
+      <tree-table
+        :data="categories"
+        :columns="columns"
+        show-index
+        stripe
+        border
+        :show-row-hover="false"
+        :selection-type="false"
+        :expand-type="false"
+      >
+        <!-- 这是是否有效的模板 -->
+        <template slot="isok" slot-scope="scope">
+          <i class="el-icon-success" v-if="scope.row.cat_deleted === false"></i>
+          <i class="el-icon-error" v-else></i>
+        </template>
+
+        <!-- 排序的模板 -->
+        <template slot="oder" slot-scope="scope">
+          <el-tag v-if="scope.row.cat_level === 0">一级</el-tag>
+          <el-tag type="success" v-else-if="scope.row.cat_level === 1"
+            >二级</el-tag
+          >
+          <el-tag type="info" v-else>三级</el-tag>
+        </template>
+
+        <!-- 操作的模板 -->
+        <template slot="son" slot-scope="scope">
+          <el-button type="primary" icon="el-icon-edit" @click="editshow"
+            >编辑</el-button
+          >
+          <el-button
+            type="danger"
+            icon="el-icon-delete"
+            @click="delcategories(scope.row)"
+            >删除</el-button
+          >
+        </template>
+      </tree-table>
+
+      <!-- <el-table :data="categories" style="width: 100%" border stripe>
+        >
         <el-table-column
           align="center"
           label="序号"
@@ -23,14 +63,15 @@
           width="70"
           :index="indexMethod"
         ></el-table-column>
-        <el-table-column
-          align="center"
-          prop="cat_name"
-          label="分类名称"
-        ></el-table-column>
+        <el-table-column align="center" label="商品分类">
+          <el-tree :props="defaultProps" :data="categories"></el-tree>
+        </el-table-column>
         <el-table-column align="center" prop="cat_pid" label="是否有效">
           <template v-slot="scope">
-            <i class="el-icon-success" v-if="scope.row.cat_pid === 0"></i>
+            <i
+              class="el-icon-success"
+              v-if="scope.row.cat_deleted === false"
+            ></i>
             <i class="el-icon-error" v-else></i>
           </template>
         </el-table-column>
@@ -56,7 +97,7 @@
             >
           </template>
         </el-table-column>
-      </el-table>
+      </el-table> -->
       <el-pagination
         @size-change="handleSizeChange"
         @current-change="handleCurrentChange"
@@ -70,18 +111,21 @@
     </el-card>
 
     <!-- 添加分类的对话框 -->
-    <el-dialog title="添加分类" :visible.sync="showcategories" width="50%">
-      <div>
-        <el-input v-model="info.cat_pid" placeholder="请输入分类ID"></el-input>
-        <el-input
-          v-model="info.cat_name"
-          placeholder="请输入分类名称"
-        ></el-input>
-        <el-input
-          v-model="info.cat_level"
-          placeholder="请输入分类层级"
-        ></el-input>
-      </div>
+    <el-dialog title="添加分类" :visible.sync="showcategories" width="35%">
+      <el-form label-width="100px" class="demo-ruleForm">
+        <el-form-item label="商品分类">
+          <el-input v-model="info.cat_name"></el-input>
+        </el-form-item>
+        <el-form-item label="父级分类">
+          <el-cascader
+            v-model="value"
+            :options="options"
+            @change="handleChange"
+            :props="props"
+            clearable
+          ></el-cascader>
+        </el-form-item>
+      </el-form>
       <span slot="footer" class="dialog-footer">
         <el-button @click="showcategories = false">取 消</el-button>
         <el-button type="primary" @click="showcategories = false"
@@ -89,7 +133,6 @@
         >
       </span>
     </el-dialog>
-
     <!-- 修改分类的对话框 -->
     <el-dialog title="编辑分类" :visible.sync="editcategories" width="50%">
       <div>
@@ -123,12 +166,50 @@ export default {
       showcategories: false,
       /* 添加弹出框的显示与隐藏 */
       info: {
-        cat_pid: '',
-        cat_name: '',
-        cat_level: ''
+        cat_name: ''
       },
       /* 控制修改弹出框的显示与隐藏 */
-      editcategories: false
+      editcategories: false,
+      // defaultProps: {
+      //   children: 'children',
+      //   label: 'cat_name'
+      // }
+      columns: [
+        {
+          label: '商品分类',
+          prop: 'cat_name'
+        },
+        {
+          label: '是否有效',
+          prop: 'cat_deleted',
+          type: 'template',
+          /* 模板的名字 */
+          template: 'isok'
+        },
+        {
+          label: '排序',
+          prop: 'cat_level',
+          type: 'template',
+          /* 模板的名字 */
+          template: 'oder'
+        },
+        {
+          label: '操作',
+          type: 'template',
+          /* 模板的名字 */
+          template: 'son'
+        }
+      ],
+      /* 级联选中项绑定的数据数组 */
+      value: [],
+      /* 级联选择项 绑定的选中的数据 */
+      options: [],
+      props: {
+        value: 'cat_id',
+        label: 'cat_name',
+        children: 'children',
+        checkStrictly: true
+      }
     }
   },
   created() {
@@ -153,7 +234,7 @@ export default {
     /* 点击删除按钮的事件 删除对应id的列表 */
     async delcategories(delcategories) {
       try {
-        this.$confirm('您确定要删除该项分类吗', '温馨提示', {
+        await this.$confirm('您确定要删除该项分类吗', '温馨提示', {
           confirmButtonText: '确定',
           cancelButtonText: '取消',
           type: 'warning'
@@ -180,14 +261,30 @@ export default {
     },
     /* 点击添加分类按钮 显示对话框 */
     categoriesshow() {
+      /* 在弹出框弹出来之前 调用函数拿到前两项的分类 */
+      this.cateFather()
+      /* 弹出框显示出来 */
       this.showcategories = true
     },
+    /* 修改按钮弹出框显示 */
     editshow() {
       this.editcategories = true
     },
     /* 让序号一直累加排列 */
     indexMethod(index) {
       return index + 1 + (this.pagenum - 1) * this.pagesize
+    },
+    handleChange(value) {
+      console.log(value)
+    },
+    async cateFather() {
+      const res = await this.axios.get('categories', { params: { type: 2 } })
+      console.log(res)
+      if (res.data.meta.status === 200) {
+        /* 获取前两级分类的数据 */
+        this.options = res.data.data
+        console.log(this.options)
+      }
     }
   }
 }

@@ -10,6 +10,11 @@ const users = () => import('../views/users.vue')
 const rights = () => import('../views/rights.vue')
 const roles = () => import('../views/roles.vue')
 const categories = () => import('../views/categories.vue')
+const params = () => import('../views/params.vue')
+const goods = () => import('../views/goods.vue')
+const Add = () => import('../views/add.vue')
+const orders = () => import('../views/orders.vue')
+const reports = () => import('../views/reports.vue')
 Vue.use(VueRouter)
 const originalPush = VueRouter.prototype.push
 VueRouter.prototype.push = function push(location) {
@@ -28,7 +33,12 @@ const routes = [
       { path: '/users', component: users },
       { path: '/rights', component: rights },
       { path: '/roles', component: roles },
-      { path: '/categories', component: categories }
+      { path: '/categories', component: categories },
+      { path: '/params', component: params },
+      { path: '/goods', component: goods },
+      { path: '/goods/add', component: Add },
+      { path: '/orders', component: orders },
+      { path: '/reports', component: reports }
     ]
   }
 ]

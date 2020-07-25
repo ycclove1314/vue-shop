@@ -10,9 +10,13 @@
   "dependencies": {
     "axios": "^0.19.2",
     "core-js": "^3.6.5",
+    "echarts": "^4.8.0",
     "element-ui": "^2.13.2",
+    "lodash": "^4.17.19",
+    "moment": "^2.27.0",
     "vue": "^2.6.11",
-    "vue-router": "^3.2.0"
+    "vue-router": "^3.2.0",
+    "vue-table-with-tree-grid": "^0.2.4"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "~4.4.0",
@@ -45,10 +49,6 @@
       "parser": "babel-eslint"
     },
     "rules": {
-      "semi": [
-        "error",
-        "never"
-      ],
       "space-before-function-paren": [
         "error",
         "never"
